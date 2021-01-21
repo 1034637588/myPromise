@@ -9,6 +9,8 @@
             this.status = PENDING;
             this.data = undefined;
             this.callbacks = []; // {onResolved,onRejected}
+
+            // resolve的作用主要是改变状态机 和 在异步调用resolve时 执行callbacks中的onResolved回调函数（即then中传入的回调）
             const resolve = (value) => {
                 if (this.status !== PENDING) {
                     return;
@@ -24,6 +26,7 @@
                 }
             }
 
+            // reject的作用主要是改变状态机 和 在异步调用reject时 执行callbacks中的onRejected回调函数（即then中传入的回调）
             const reject = (reason) => {
                 if (this.status !== PENDING) {
                     return;
@@ -38,14 +41,15 @@
                     });
                 }
             }
-
             try {
-                excutor(resolve, reject);
+                excutor(resolve, reject); // 执行执行器函数
             } catch (error) {
                 reject(error);
             }
         }
 
+        // then方法 主要返回一个promise，并且promise的成功与失败取决于执行回调函数的返回值，如果返回数值 那么就是成功并且返回此数值，如果不返回值就是成功的undefined，如果抛出异常则此promise为失败
+        // 如果当前状态为PENDING 就将回调函数存储进数组中，如果不是的话 说明执行reslove/reject 方法时是同步执行的 即可立即执行回调函数了
         Promise.prototype.then = function (onResolved, onRejected) { // 传入两个会回调
             onResolved = typeof onResolved === 'function' ? onResolved : value => value;
             onRejected = typeof onRejected === 'function' ? onRejected : reason => { throw reason };
